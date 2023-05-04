@@ -8,8 +8,13 @@ import java.util.Properties
 object SparkUtil {
 
   /**
+   * spark 的环境配置对象
+   */
+   private var conf: SparkConf = _
+
+  /**
    * 获取公共的配置
-   * @return
+   * @return prop
    */
  private def getProp: Properties = {
    val prop = new Properties()
@@ -21,12 +26,14 @@ object SparkUtil {
 
   /**
    * 获取支持hive的sparkSession
-   * @return 返回sparkSession
+   * @return 返回支持hive的sparkSession
    */
-  def getHiveSparkSession: SparkSession = {
-    val conf: SparkConf = new SparkConf()/*.setMaster("local[*]") */.setAppName("task")
-
-
+  def getHiveSparkSession(isCluster: Boolean, appName: String = "task"): SparkSession = {
+    if (isCluster) {
+      conf = new SparkConf().setAppName("task")
+    } else {
+      conf = new SparkConf().setMaster("local[*]").setAppName(appName)
+    }
     val spark: SparkSession = SparkSession.builder().config(conf).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     spark
@@ -34,11 +41,14 @@ object SparkUtil {
 
   /**
    * 获取普通的sparkSession
-   *
    * @return 返回sparkSession
    */
-  def getSparkSession: SparkSession = {
-    val conf: SparkConf = new SparkConf()/*.setMaster("local[*]") */.setAppName("task")
+  def getSparkSession(isCluster: Boolean, appName: String = "task"): SparkSession = {
+    if (isCluster) {
+      conf = new SparkConf().setAppName("task")
+    } else {
+      conf = new SparkConf().setMaster("local[*]").setAppName(appName)
+    }
     val spark: SparkSession = SparkSession.builder().config(conf).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     spark
@@ -46,14 +56,13 @@ object SparkUtil {
 
 
   /**
-   * 将df中的数据保存到mysql
+   * 将df中的数据保存到mysql(覆写模式)
    * @param dataFrame df
    * @param database 需要操作的数据库
    * @param tableName 需要操作的表
    * @return 返回DataFormat
    */
   def saveMysql(dataFrame: DataFrame, database: String, tableName: String): Unit = {
-
     dataFrame.write.mode("overwrite")
       .jdbc( s"jdbc:mysql://172.29.44.24:3306/$database?useSSL=false&createDatabaseIfNotExist=true", tableName, getProp)
   }
@@ -71,10 +80,11 @@ object SparkUtil {
 
 
   /**
+   * 静态全量抽取
    * @param spark          sparkSession
    * @param hiveDb         需要操作的hive库名
    * @param hiveTableName  hive表名
-   * @param tempTable      spark的临时表
+   * @param tempTable      spark中的临时表
    * @param partitionFiled 分区字段
    * @param partitionVal   分区名
    */
@@ -82,7 +92,7 @@ object SparkUtil {
     spark.sql(s"use $hiveDb")
     spark.sql(
       s"""
-         |insert overwrite table $hiveTableName partition ($partitionFiled=$partitionVal)
+         |insert overwrite table $hiveDb.$hiveTableName partition ($partitionFiled=$partitionVal)
          |select * from $tempTable
          |""".stripMargin)
   }
