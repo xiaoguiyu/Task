@@ -5,7 +5,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.util.Properties
 
-object SparkUtil {
+object SparkUtils {
 
   /**
    * spark 的环境配置对象
@@ -45,12 +45,14 @@ object SparkUtil {
    */
   def getSparkSession(isCluster: Boolean, appName: String = "task"): SparkSession = {
     if (isCluster) {
-      conf = new SparkConf().setAppName("task")
+      conf = new SparkConf().setAppName(appName)
     } else {
       conf = new SparkConf().setMaster("local[*]").setAppName(appName)
     }
     val spark: SparkSession = SparkSession.builder().config(conf).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
+    spark.sql("set hive.exec.dynamic.partition=true")
+    spark.sql("set hive.exec.dynamic.partition.mode=nonstrict")
     spark
   }
 
@@ -61,6 +63,7 @@ object SparkUtil {
    * @param database 需要操作的数据库
    * @param tableName 需要操作的表
    * @return 返回DataFormat
+   * 如果加入了createDatabaseIfNotExit 这个参数 没有库会自动创建库 ）
    */
   def saveMysql(dataFrame: DataFrame, database: String, tableName: String): Unit = {
     dataFrame.write.mode("overwrite")

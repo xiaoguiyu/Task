@@ -11,6 +11,7 @@
     <modules>
         <module>Task_5.3</module>
         <module>Task_5.4</module>
+        <module>Exercise</module>
     </modules>
 
     <properties>
