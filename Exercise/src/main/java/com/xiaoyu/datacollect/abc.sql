@@ -27,3 +27,8 @@ alter table tableName drop partition ($partition=$partitionVal)
 insert [into overwrite] table $tableName partition($partition=$partitionVal)
 select * from $tempTableName
 
+
+
+
+from_unixtime(unix_timestamp($elem, 'yyyy-MM-dd'))
+

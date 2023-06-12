@@ -1,0 +1,14 @@
+
+spark-submit  \
+--jars /chinaskills/mysql-connector-java-5.1.47.jar \
+--class com.xiaoyu.test.TestConnectHbase \
+--master yarn \
+--deploy-mode client  \
+~/Task_5.4-1.0-SNAPSHOT.jar
+
+
+hadoop jar Task_5.4-1.0-SNAPSHOT-jar-with-dependencies.jar com.HBaseTest
+
+
+
+
